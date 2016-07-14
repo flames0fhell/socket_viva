@@ -1,7 +1,6 @@
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
-var io = require('socket.io')(http,{origins: '*:*'});
 var privateKey  = fs.readFileSync('hitoriaf.com-cert/hitoriafcom.key', 'utf8');
 var certificate = fs.readFileSync('hitoriaf.com-cert/hitoriafcom.crt', 'utf8');
 
@@ -9,10 +8,10 @@ var credentials = {key: privateKey, cert: certificate, passphrase: 'hitoriaf'};
 var express = require('express');
 var app = express();
 
-// your express configuration here
-
 var httpServer = http.createServer(app);
 var httpsServer = https.createServer(credentials, app);
+
+var io = require('socket.io')(httpServer,{origins: '*:*'});
 
 app.get('/', function(req, res){
   res.setHeader("Access-Control-Allow-Origin", "*");
