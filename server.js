@@ -28,6 +28,9 @@ io.on('connection', function(socket){
     console.log('message: ' + msg);
     callback(msg);
   });
+  socket.on('coba', function(msg){
+    console.log('Message Coba : ' + msg);
+  });
 });
 
 httpServer.listen(8080);
