@@ -1,7 +1,7 @@
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
-var io = require('socket.io')(http);
+var io = require('socket.io')(http,{origins: '*:*'});
 var privateKey  = fs.readFileSync('hitoriaf.com-cert/hitoriafcom.key', 'utf8');
 var certificate = fs.readFileSync('hitoriaf.com-cert/hitoriafcom.crt', 'utf8');
 
