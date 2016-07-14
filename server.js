@@ -18,7 +18,9 @@ app.get('/', function(req, res){
   res.send('Keep Calm, Its Active');
 });
 app.post('/send_socket',function(req,res){
-  res.json({tes:'tes'});
+  var message = req.params.message;
+  io.emit('chat',message,callback);
+  res.json({send:message, receive:callback});
 });
 
 io.on('connection', function(socket){
