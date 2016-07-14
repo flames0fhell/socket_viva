@@ -1,15 +1,18 @@
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-var express = require('express');
-
 var fs = require('fs');
+var http = require('http');
+var https = require('https');
+var io = require('socket.io')(http);
+var privateKey  = fs.readFileSync('hitoriaf.com-cert/hitoriafcom.key', 'utf8');
+var certificate = fs.readFileSync('hitoriaf.com-cert/hitoriafcom.crt', 'utf8');
 
-var privateKey = fs.readFileSync('hitoriaf.com-cert/hitoriafcom.key');
-var certificate = fs.readFileSync('hitoriaf.com-cert/hitoriafcom.crt');
+var credentials = {key: privateKey, cert: certificate, passphrase: 'hitoriaf'};
+var express = require('express');
+var app = express();
 
-var credentials = {key: privateKey, cert: certificate};
+// your express configuration here
 
-var app = express.createServer(credentials);
+var httpServer = http.createServer(app);
+var httpsServer = https.createServer(credentials, app);
 
 app.get('/', function(req, res){
   res.send('Keep Calm, Its Active');
@@ -26,6 +29,6 @@ io.on('connection', function(socket){
     callback(msg);
   });
 });
-http.listen(2549, function(){
-  console.log('listening on *:2549');
-});
+
+httpServer.listen(8080);
+httpsServer.listen(8443);
