@@ -15,6 +15,7 @@ var httpServer = http.createServer(app);
 var httpsServer = https.createServer(credentials, app);
 
 app.get('/', function(req, res){
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.send('Keep Calm, Its Active');
 });
 
