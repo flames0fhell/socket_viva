@@ -1,6 +1,7 @@
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
+var bodyParser = require('body-parser');
 var privateKey  = fs.readFileSync('hitoriaf.com-cert/hitoriafcom.key', 'utf8');
 var certificate = fs.readFileSync('hitoriaf.com-cert/hitoriafcom.crt', 'utf8');
 
@@ -13,14 +14,27 @@ var httpsServer = https.createServer(credentials, app);
 
 var io = require('socket.io')(httpsServer,{origins: '*:*'});
 
-app.get('/', function(req, res){
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.send('Keep Calm, Its Active');
-});
-app.post('/send_socket',function(req,res){
-  var message = req.params.message;
-  io.emit('chat',message,callback);
-  res.json({send:message, receive:callback});
+var ioclient = require('socket.io-client')('https://services.hitoriaf.com:8443');
+
+
+app.use(bodyParser.json() );       // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+  extended: true
+}));
+ioclient.on('connect', function(){
+  console.log("Socket Client Activated");
+  app.get('/', function(req, res){
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send('Keep Calm, Its Active');
+  });
+  app.post('/send_socket',function(req,res){
+    var message = req.body.message;
+    ioclient.emit("chat",message,function(callback){
+      console.log(callback);
+      res.send(callback);
+    });
+  });
+
 });
 
 io.on('connection', function(socket){
