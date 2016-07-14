@@ -17,6 +17,9 @@ app.get('/', function(req, res){
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.send('Keep Calm, Its Active');
 });
+app.post('/send_socket',function(req,res){
+  res.json({tes:'tes'});
+});
 
 io.on('connection', function(socket){
   console.log('a user connected');
