@@ -11,7 +11,7 @@ var app = express();
 var httpServer = http.createServer(app);
 var httpsServer = https.createServer(credentials, app);
 
-var io = require('socket.io')(httpServer,{origins: '*:*'});
+var io = require('socket.io')(httpsServer,{origins: '*:*'});
 
 app.get('/', function(req, res){
   res.setHeader("Access-Control-Allow-Origin", "*");
