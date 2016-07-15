@@ -45,6 +45,7 @@ io.on('connection', function(socket){
 
   socket.on('chat', function(msg, callback){
     console.log('message: ' + msg);
+    io.emit('chat', "hai hai");
     callback("apapun");
   });
   socket.on('coba', function(msg){
