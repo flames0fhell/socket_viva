@@ -12,10 +12,25 @@ var app = express();
 var httpServer = http.createServer(app);
 var httpsServer = https.createServer(credentials, app);
 
-var io = require('socket.io')(httpsServer,{origins: '*:*'});
+var io = require('socket.io')(httpServer,{origins: '*:*'});
 
-var ioclient = require('socket.io-client')('https://services.hitoriaf.com:8443');
+//var ioclient = require('socket.io-client')('https://services.hitoriaf.com:8443');
+var ioclient = require('socket.io-client')('http://localhost:8080');
 
+/*
+ * Mongo DB Connect
+ */
+var mongojs = require('mongojs');
+var databaseUrl = "services.hitoriaf.com/socket_server",
+    collections = ["user", "pesan"],
+    db          = mongojs(databaseUrl, collections);
+db.on("connect", function(){
+  console.log("database connected to " + databaseUrl);
+});
+db.on('error', function (err) {
+	console.log('database error', err)
+})
+/** The Program Starts Here **/
 
 app.use(bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
@@ -27,29 +42,55 @@ ioclient.on('connect', function(){
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send('Keep Calm, Its Active');
   });
+  app.post('/getchat', function(req,res){
+    var body = req.body;
+    db.pesan.find({}, function(error,data){
+      res.json(data);
+    });
+  });
   app.post('/send_socket',function(req,res){
-    var message = req.body.message;
-    ioclient.emit("chat",message,function(callback){
-      console.log(callback);
-      res.send(callback);
+    var body = req.body;
+    console.log(body);
+    var type = body.utype;
+    var message = {
+                    message : body.message
+                    ,icon : body.image_url
+                  };
+    ioclient.emit(type,message,function(callback){
+      res.send(message);
     });
   });
 
 });
 
 io.on('connection', function(socket){
-  console.log('a user connected');
+  console.log('user connected, id ' + socket.id);
   socket.on('disconnect', function(){
     console.log('user disconnected');
   });
-
-  socket.on('chat', function(msg, callback){
-    console.log('message: ' + msg);
-    io.emit('chat', "hai hai");
-    callback("apapun");
+  socket.on('register_client', function(msg){
+    var userid = msg.userid;
+    console.log("registered user " + userid + "id : " + socket.id);
   });
-  socket.on('coba', function(msg){
-    console.log('Message Coba : ' + msg);
+  socket.on('chat', function(msg, callback){
+    db.pesan.save(msg, function(error, message){
+      if(error){
+        console.log(error);
+        callback(error);
+      }
+      console.log("save chat message");
+      console.log(msg);
+      io.emit('chat', msg);
+      callback("sukses");
+    });
+  });
+  socket.on('notif_all', function(msg, callback){
+    io.emit('notif_all', msg);
+    callback("sukses");
+  });
+  socket.on("lock", function(msg){
+    console.log(msg);
+    io.emit("lock",msg);
   });
 });
 
