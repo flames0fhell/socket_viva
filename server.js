@@ -8,7 +8,7 @@ var certificate = fs.readFileSync('hitoriaf.com-cert/hitoriafcom.crt', 'utf8');
 var credentials = {key: privateKey, cert: certificate, passphrase: 'hitoriaf'};
 var express = require('express');
 var app = express();
-
+var moment = require('moment');
 var httpServer = http.createServer(app);
 var httpsServer = https.createServer(credentials, app);
 
@@ -43,9 +43,12 @@ ioclient.on('connect', function(){
     res.send('Keep Calm, Its Active');
   });
   app.post('/getchat', function(req,res){
+    res.setHeader("Access-Control-Allow-Origin", "*");
     var body = req.body;
-    db.pesan.find({}, function(error,data){
-      res.json(data);
+    db.pesan.find({
+      create_date : {"$gte" : moment().format("YYYY-MM-DD 00:00:00")}
+      },function(error,msg){
+      res.json(msg);
     });
   });
   app.post('/send_socket',function(req,res){
@@ -73,6 +76,7 @@ io.on('connection', function(socket){
     console.log("registered user " + userid + "id : " + socket.id);
   });
   socket.on('chat', function(msg, callback){
+    msg.create_date = moment().format("YYYY-MM-DD HH:mm:ss");
     db.pesan.save(msg, function(error, message){
       if(error){
         console.log(error);
